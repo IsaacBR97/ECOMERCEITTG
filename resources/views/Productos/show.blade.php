@@ -7,6 +7,11 @@
 @endsection
 
 @section('content')
+@if (session('status'))
+        <div class="alert alert-success">
+            {{session('status')}}
+        </div>
+    @endif
 <div class="row">
     <div class="col">Nombre:</div>
     <div class="col bg-light">{{$producto->nombre}}</div>
@@ -27,7 +32,7 @@
 </div>
 <div class="row">
     <div class="col">Imagen:</div>
-    <div class="col bg-light"><img src="/prods/{{$producto->imagen}}" alt="" class="img-thumnail"></div>
+    <div class="col bg-light"><img src="/images/{{$producto->imagen}}" alt="" class="img-thumnail" width="100"></div>
     <div class="col"></div>
     <div class="col"></div>
 </div>
@@ -73,7 +78,7 @@
 <div class="d-flex justify-content-between align-items-center">
     <div class="btn-group">
         @if (Gate::allows('comprar',$producto))
-            <a class="btn btn-lg btn-outline-success"  href="/Comprar/{{$producto->id}}">Comprar</a>                                     
+            <a class="btn btn-lg btn-outline-success"  href="{{route('comprar',$producto)}}">Comprar</a>                                     
         @endif
 
         @if (Gate::allows('preguntar',$producto))

@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Venta;
 
-use Illuminate\Support\Facades\Auth;
+use App\Models\Usuario;
 
 
 use App\Models\Producto;
 use App\Models\Categoria;
+use App\Models\ProductImage;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class ProductosControler extends Controller
 {
@@ -49,21 +53,23 @@ class ProductosControler extends Controller
      */
     public function store(Request $request)
     {
+       
         $valores = $request->all();
-        $imagen = $request->file('imagen');
-        if(!is_null($imagen)){
-            $ruta_destino = public_path('prods/');
-            $nombre_de_archivo = $imagen->getClientOriginalName();
-            $imagen->move($ruta_destino, $nombre_de_archivo);        
-            $valores['imagen']=$nombre_de_archivo;
-        }
-
+        $request->validate([
+            'imagen' => 'required|mimes:jpeg,bmp,png|max:10240'
+           ]);
+           $filename= time().".".$request->imagen->extension();
+           $request->imagen->move(public_path('images'),$filename);
+    
+          
+     
         $valores['usuario_id']=Auth::id();
-
+            $valores['imagen']=$filename;
         $registro = new Producto();
         $registro->fill($valores);
         $registro->save();
-
+      
+        ProductImage::create(['image'=>$filename, 'product_id'=>$registro->id]);
         return redirect("/Productos")->with('mensaje','Producto agregado correctamente');
         
     }
@@ -89,8 +95,110 @@ class ProductosControler extends Controller
     public function edit($id)
     {
         $producto = Producto::find($id);
+
         $categorias = Categoria::all();
         return view('Productos.edit',compact('producto','categorias'));
+    }
+
+
+    public function comprar(Producto $producto)
+    {
+     
+     //DB::table('comments')->insert(
+     // ['titulo'=> 'comentario','message' => $request->message, 'product_id' => $request->idproducto, 'user_id'=>$request->idcliente]
+  //);
+  
+      Venta::create(['product_id'=> $producto->id
+      ,'comprador_id' => auth()->user()->id, 'total'=>$producto->precio ,'vendedor_id'=>$producto->usuario_id]);
+     
+
+      return back()->with('status','Compra Exitosa!');
+
+      
+    }
+
+    
+    public function cambiarestado(Venta $estad)
+    {
+        if($estad->estado=="pendiente")
+        {
+            
+          DB::table('ventas')
+          ->where('id', $estad->id)
+          ->update(['estado' => "entregado"]);
+          DB::table('usuarios')->where('id','=',$estad->vendedor_id)->increment('cash',$estad->total);
+  
+        }
+        else if($estad->estado=="entregado"){
+          DB::table('ventas')
+          ->where('id', $estad->id)
+          ->update(['estado' => "pendiente"]);
+          DB::table('usuarios')->where('id','=',$estad->vendedor_id)->decrement('cash',$estad->total);
+        }
+        
+         return response()->json($estad->estado);
+    }
+
+    public function pagos($id)
+    {
+        $ventas=Venta::where('vendedor_id',$id)->where('estado','pendiente')->get();
+        $productos=Producto::all();
+        $usuario=Usuario::find($id)->nombre;
+        $usuarios=Usuario::all();
+        return view('Productos.tablerocontador',compact('ventas','usuario','productos','usuarios'));
+
+        
+    }
+
+    public function check(Request $request)
+    {
+        $acumulado=0;
+        if($request->id!=null)
+        {
+            foreach($request->id as $id)
+{
+    
+    DB::table('ventas')
+    
+    ->where('id', $id)
+    ->update(['estado' => "entregado"]);
+    $vendedor=Venta::find($id)->vendedor_id;
+    $total=Venta::find($id)->total;
+    $acumulado=$acumulado+$total;
+    DB::table('usuarios')->where('id','=',$vendedor)->increment('cash',$total);
+}
+return back()->with('status','Pago realizado con exito, Monto total:'.$acumulado);
+        }
+        else
+        {
+            return back()->with('error','No hay productos seleccionados');
+
+        }
+
+    }
+    public function image(Request $request, Producto $producto)
+    {
+       
+       $request->validate([
+        'image' => 'required|mimes:jpeg,bmp,png|max:10240'
+       ]);
+       $filename= time().".".$request->image->extension();
+       $request->image->move(public_path('images'),$filename);
+
+       ProductImage::create(['image'=>$filename, 'product_id'=>$producto->id]);
+       return back()->with('status','Imagen cargada con exito!');
+    }
+
+    public function imageDownload(ProductImage $image){
+       
+        $pathImage=public_path('images/').$image->image;
+        return response()->download($pathImage);
+    }
+    public function imagedelete(ProductImage $image){
+       $image->delete();
+        $pathImage=public_path('images/').$image->image;
+        unlink($pathImage);
+        return back()->with('status','imagen '.$image->id.' eliminada');
     }
 
     /**

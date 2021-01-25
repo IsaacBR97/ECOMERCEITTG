@@ -49,11 +49,7 @@
 
 @endcan
   
-      <div class="form-group">
-          <label for="imagen">Imagen:</label>
-          <img src="/prods/{{$producto->imagen}}" alt=""  width="200" class="img-thumnail">
-          <input type="file" name="imagen" id="imagen">
-      </div>
+    
       <input type="hidden" name="usuario_id" value="{{Auth::id()}}">
       <div class="form-group">
         <label>Categoria:</label>
@@ -71,4 +67,66 @@
   
     <input type="submit" class="btn btn-primary" value="Enviar">    
 </form>
+<br>
+<br>
+<form action="{{route("producto.image",$producto)}}" method="POST" enctype="multipart/form-data">
+  @csrf
+     
+       <input type="file" name="image" id="" class="form-control ">
+ 
+     
+     
+       <input type="submit" class="btn btn-success btn-round " value="SUBIR IMAGEN">
+ 
+     
+   
+ 
+ 
+ </form>
+
+ @if ($producto->images!=null)
+
+
+ <div class="card">
+   <div class="card-header card-header-info">
+       <h4 class="card-title">
+        Imagenes del Producto
+       </h4>
+      
+   </div>
+   <div class="card-body">
+ <div class="row mt-3">
+   @foreach ($producto->images as $image)
+   <div class="col-mt-3 col-lg-3 card">
+     <div class=" card-profile">
+       <div class="card-avatar">
+   <img class="w-100 img" src="{{asset('images')}}/{{$image->image}}" alt="">
+       </div>
+     </div>
+   
+   <div class="row">
+     <div class="col-6">
+       <a href="{{route('producto.imageDownload',$image->id)}}" class="btn-block  btn btn-success btn-sm mt-2" >Editar</i></a>
+ 
+     </div>
+ 
+     <div class="col-6">
+       <form action="{{route('producto.imagedelete',$image->id)}}" method="POST">
+         @method("DELETE")
+         @csrf
+       <button  class="btn-block  btn btn-danger btn-sm mt-2 type="submit">Eliminar</button>
+     </form>
+     </div>
+    
+   </div>
+ 
+   </div>
+ @endforeach
+ </div>
+   </div>
+ </div>
+        
+        
+ 
+ @endif
 @endsection

@@ -42,5 +42,15 @@ Route::get('Preguntar/{producto}','PreguntasControler@create');
 Route::put('_Usuarios/{id}','AjaxControler@updateUsuario');
 Route::post('_Categorias','AjaxControler@storeCategoria');
 Route::delete('_Categorias/{id}','AjaxControler@destroyCategoria');
+Route::post('producto{producto}/image', 'ProductosControler@image')->name('producto.image');
+Route::get('producto/image-download/{image}', 'ProductosControler@imageDownload')->name('producto.imageDownload');
+Route::delete('producto/image-delete/{image}', 'ProductosControler@imagedelete')->name('producto.imagedelete');
+Route::get('comprar/{producto}','ProductosControler@comprar')->name('comprar');
+Route::post('dashboard/producto/rechazado','dashboard\ProductController@rechazado')->name('comentrechazado');
+Route::post('dashboard/venta/cambiarestado/{estad}','ProductosControler@cambiarestado');
+Route::post('check','ProductosControler@check')->name('check');
+
+Route::get('pagos/usuario/{id}','ProductosControler@pagos')->name('pagousuario');
+
 
 //cambios

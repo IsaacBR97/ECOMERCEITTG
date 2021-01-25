@@ -40,9 +40,10 @@
     </div>
     <div class="row">
     @forelse ($productos as $producto)
+    
       <div class="col-md-4 p-3">
         <div class="card box-shadow">
-          <img class="card-img-top" src="/prods/{{$producto->imagen}}" >
+          <img class="card-img-top" src="/images/{{$producto->imagen}}" >
           <div class="card-body">
             <p class="card-text">
               <p>{{$producto->nombre}}</p>

@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Categoria;
-use App\Models\Producto;
+use App\Models\User;
+use App\Models\Venta;
+use App\Models\Usuario;
 use App\Models\Pregunta;
+use App\Models\Producto;
+use App\Models\Categoria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -43,7 +46,13 @@ class IncioControler extends Controller
                             ->count();
                 return  view('tablero', compact('productos','concesionados','preguntas') );
                 break;
-                        
+            case 'Contador':
+                $productos = Producto::all();
+                $comprador = Usuario::all();
+                    $ventas=Venta::paginate(10);
+                    
+                    return  view('tablero', compact('productos','comprador','ventas') );
+                break;            
             default:
                 return view('tablero');
                 break;
